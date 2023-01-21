@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsToMany(models.user, {
         through: "group_users",
       });
-      this.hasMany(models.invoice, { foreignKey: "invoice_group_id" });
+      this.hasMany(models.invoice, { as: "invoices", foreignKey: "invoice_group_id" });
     }
   }
   Group.init(

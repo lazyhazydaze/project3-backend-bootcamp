@@ -1,11 +1,13 @@
+const { Sequelize } = require("sequelize");
 const { sequelize } = require("../db/models");
 
 class ExpensesController {
-  constructor(model, userModel, splitExpenseModel, expenseModel) {
+  constructor(model, userModel, splitExpenseModel, groupModel, invoiceModel) {
     this.model = model;
     this.userModel = userModel;
     this.splitExpenseModel = splitExpenseModel;
-    this.expenseModel = expenseModel;
+    this.groupModel = groupModel;
+    this.invoiceModel = invoiceModel;
   }
 
   // Retrieve all expenses from a specific invoice
@@ -45,7 +47,7 @@ class ExpensesController {
         include: [
           { model: this.userModel, as: "splitby" },
           {
-            model: this.expenseModel,
+            model: this.model,
             as: "expense",
             where: { invoice_id: invoiceId },
           },
@@ -56,6 +58,99 @@ class ExpensesController {
       return res.status(400).json({ error: true, msg: err });
     }
   }
+
+  async getEachGroupExpenses(req, res) {
+    const { groupId } = req.params;
+    try {
+      const paidByAggregate = await this.splitExpenseModel.findAll({
+        include: {
+          model: this.model,
+          attributes: [],
+          include: {
+            model: this.invoiceModel,
+            attributes: [],
+            include: {
+              model: this.groupModel,
+              as: "group",
+              attributes: [],
+              where: { id: groupId },
+              required: true,
+            },
+            required: true,
+          },
+          required: true,
+        },
+        attributes: [
+          "paid_by_id",
+          [Sequelize.fn("sum", Sequelize.col("splitexpense.amount")), "total"],
+        ],
+        group: ["paid_by_id"],
+      });
+      const splitByAggregate = await this.splitExpenseModel.findAll({
+        include: {
+          model: this.model,
+          attributes: [],
+          include: {
+            model: this.invoiceModel,
+            attributes: [],
+            include: {
+              model: this.groupModel,
+              as: "group",
+              attributes: [],
+              where: { id: groupId },
+              required: true,
+            },
+            required: true,
+          },
+          required: true,
+        },
+        attributes: [
+          "split_by_id",
+          [Sequelize.fn("sum", Sequelize.col("splitexpense.amount")), "total"],
+        ],
+        group: ["split_by_id"],
+      });
+
+      const tally = {};
+
+      paidByAggregate.forEach((object) => {
+        tally[object.paid_by_id] = Number(object.dataValues.total);
+      });
+
+      splitByAggregate.forEach((object) => {
+        if (object.split_by_id in tally) {
+          tally[object.split_by_id] -= Number(object.dataValues.total);
+        } else {
+          tally[object.split_by_id] = -Number(object.dataValues.total);
+        }
+      });
+
+      return res.json(tally);
+    } catch (err) {
+      return res.status(400).json({ error: true, msg: err });
+    }
+  }
+
+  // async getEachGroupExpenses(req, res) {
+  //   const { groupId } = req.params;
+  //   try {
+  //     const expensesbygroup = await this.groupModel.findAll({
+  //       where: { id: groupId },
+  //       include: {
+  //         model: this.invoiceModel,
+  //         as: "invoices",
+  //         include: {
+  //           model: this.model,
+  //           as: "expenses",
+  //           include: { model: this.splitExpenseModel, as: "expense" },
+  //         },
+  //       },
+  //     });
+  //     return res.json(expensesbygroup);
+  //   } catch (err) {
+  //     return res.status(400).json({ error: true, msg: err });
+  //   }
+  // }
 
   // Add expenses on specific invoice
   async createOneExpense(req, res) {

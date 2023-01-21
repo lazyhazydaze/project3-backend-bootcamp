@@ -47,6 +47,9 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         allowNull: false,
       },
+      picture: {
+        type: DataTypes.STRING,
+      },
     },
     {
       sequelize,

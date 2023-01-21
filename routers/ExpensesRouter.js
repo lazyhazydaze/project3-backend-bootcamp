@@ -21,6 +21,10 @@ class ExpensesRouter {
       "/invoice/:invoiceId/spender/:spenderId",
       this.controller.getEachUserExpenses.bind(this.controller)
     );
+    router.get(
+      "/group/:groupId",
+      this.controller.getEachGroupExpenses.bind(this.controller)
+    );
     router.post(
       "/invoice/:invoiceId",
       this.controller.createOneExpense.bind(this.controller)

@@ -42,7 +42,8 @@ const expensesController = new ExpensesController(
   expense,
   user,
   splitexpense,
-  expense
+  group,
+  invoice
 );
 
 // Step 5.initializing Routers -> note the lowercase for the first word
