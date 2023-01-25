@@ -131,26 +131,44 @@ class ExpensesController {
     }
   }
 
-  // async getEachGroupExpenses(req, res) {
-  //   const { groupId } = req.params;
-  //   try {
-  //     const expensesbygroup = await this.groupModel.findAll({
-  //       where: { id: groupId },
-  //       include: {
-  //         model: this.invoiceModel,
-  //         as: "invoices",
-  //         include: {
-  //           model: this.model,
-  //           as: "expenses",
-  //           include: { model: this.splitExpenseModel, as: "expense" },
-  //         },
-  //       },
-  //     });
-  //     return res.json(expensesbygroup);
-  //   } catch (err) {
-  //     return res.status(400).json({ error: true, msg: err });
-  //   }
-  // }
+  // get the total expenses of each user from all the groups
+  async getUserTotalExpenses(req, res) {
+    const { userId } = req.params;
+    try {
+      const toGet = await this.splitExpenseModel.findAll({
+        where: { paid_by_id: userId },
+        attributes: [
+          "paid_by_id",
+          [Sequelize.fn("sum", Sequelize.col("splitexpense.amount")), "total"],
+        ],
+        group: ["paid_by_id"],
+      });
+
+      const toPay = await this.splitExpenseModel.findAll({
+        where: { split_by_id: userId },
+        attributes: [
+          "split_by_id",
+          [Sequelize.fn("sum", Sequelize.col("splitexpense.amount")), "total"],
+        ],
+        group: ["split_by_id"],
+      });
+
+      console.log(toGet);
+
+      let netBalance = Number(0);
+
+      if (toGet.length == 1) {
+        netBalance += Number(toGet[0].dataValues.total);
+      }
+      if (toPay.length == 1) {
+        netBalance -= Number(toPay[0].dataValues.total);
+      }
+
+      return res.json(netBalance);
+    } catch (err) {
+      return res.status(400).json({ error: true, msg: err });
+    }
+  }
 
   // Add expenses on specific invoice
   async createOneExpense(req, res) {
@@ -158,7 +176,7 @@ class ExpensesController {
 
     const { invoiceId } = req.params;
     const { name, amount, payerId, splitByIds } = req.body;
-    const splitAmt = amount / splitByIds.length;
+    const splitAmt = Number(amount / splitByIds.length).toFixed(2);
     try {
       const newExpense = await this.model.create(
         {
@@ -175,7 +193,7 @@ class ExpensesController {
       //split-expense table: expense-id, split_by_id, paid_by_id, splitted amt
       // for-loop for splitbyId
 
-      for (let i = 0; i < splitByIds.length; i++) {
+      for (let i = 0; i < splitByIds.length - 1; i++) {
         await this.splitExpenseModel.create(
           {
             expense_id: id,
@@ -186,6 +204,19 @@ class ExpensesController {
           { transaction: t }
         );
       }
+
+      const lastPersonAmt = amount - splitAmt * (splitByIds.length - 1);
+
+      await this.splitExpenseModel.create(
+        {
+          expense_id: id,
+          split_by_id: splitByIds[splitByIds.length - 1],
+          paid_by_id: payerId,
+          amount: lastPersonAmt,
+        },
+        { transaction: t }
+      );
+
       await t.commit();
       return res.json(newExpense);
     } catch (err) {
