@@ -29,6 +29,10 @@ class ExpensesRouter {
       "/invoice/:invoiceId",
       this.controller.createOneExpense.bind(this.controller)
     );
+    router.get(
+      "/user/:userId",
+      this.controller.getUserTotalExpenses.bind(this.controller)
+    );
     return router;
   }
 }
