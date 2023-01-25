@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING,
       },
       amount: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.FLOAT,
       },
       payer_id: {
         type: Sequelize.INTEGER,

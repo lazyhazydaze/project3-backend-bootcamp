@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       amount: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.FLOAT,
         allowNull: false,
       },
       payer_id: {

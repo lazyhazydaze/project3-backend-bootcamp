@@ -31,7 +31,7 @@ module.exports = {
         },
       },
       amount: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.FLOAT,
       },
       created_at: {
         allowNull: false,

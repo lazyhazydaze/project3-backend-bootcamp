@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       amount: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.FLOAT,
       },
     },
     {
