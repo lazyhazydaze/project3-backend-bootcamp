@@ -26,6 +26,7 @@ class UsersController extends BaseController {
       if (output.length == 0) {
         const data = { ...req.body };
         output = await this.model.create(data);
+        return res.json(output);
       }
       return res.json(output[0]);
     } catch (err) {
