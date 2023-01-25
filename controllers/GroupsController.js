@@ -20,6 +20,7 @@ class GroupsController extends BaseController {
   }
 
   //from bigfoot ex
+  // retrieve all users of a specific group
   async getOneGroup(req, res) {
     const { groupId } = req.params;
     try {
@@ -54,5 +55,5 @@ class GroupsController extends BaseController {
     }
   }
 }
-// is invoiceModel needed here?
+
 module.exports = GroupsController;
