@@ -24,6 +24,55 @@ class ExpensesController {
     }
   }
 
+  // Delete all expenses from a specific invoice
+  // to delete selected expense, need to first delete inside split expense model then can delete in expense model
+  // but now i have more than one expense id leh
+  async deleteAllExpenses(req, res) {
+    const { invoiceId } = req.params;
+    try {
+      let expenses = await this.model.findAll({
+        where: { invoice_id: invoiceId },
+      });
+
+      for (let i = 0; i < expenses.length; i++) {
+        await this.splitExpenseModel.destroy({
+          where: { expense_id: expenses[i].id },
+        });
+      }
+
+      // include transaction
+
+      expenses = await this.model.destroy({
+        where: { invoice_id: invoiceId },
+      });
+
+      return res.json(expenses);
+    } catch (err) {
+      return res.status(400).json({ error: true, msg: err });
+    }
+  }
+
+  // Delete selected expense
+  // to delete selected expense, need to first delete inside split expense model then can delete in expense model
+  async deleteOne(req, res) {
+    const { expenseId } = req.params;
+    try {
+      const records = await this.splitExpenseModel.destroy({
+        where: { expense_id: expenseId },
+      });
+
+      let expense = await this.model.findByPk(expenseId);
+      if (expense) {
+        await expense.destroy();
+      }
+      expense = await this.model.findAll();
+
+      return res.json(expense);
+    } catch (err) {
+      return res.status(400).json({ error: true, msg: err });
+    }
+  }
+
   // Retrieve the spenders for a specific expense
   async getSpenders(req, res) {
     const { expenseId } = req.params;

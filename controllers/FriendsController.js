@@ -48,7 +48,7 @@ class FriendsController {
         if (output.length > 0) {
           return res
             .status(400)
-            .json({ error: true, msg: "Accept the pending request." });
+            .json({ error: true, msg: "Request has been sent to you" });
         }
 
         output = await this.friendRequestModel.findAll({
@@ -59,7 +59,7 @@ class FriendsController {
           // User cannot resend pending request (done)
           return res
             .status(400)
-            .json({ error: true, msg: "Sent before. Cannot send again." });
+            .json({ error: true, msg: "Sent before - cannot send again" });
         } else {
           // Send friend request (done)
           const newRequest = await this.friendRequestModel.create({

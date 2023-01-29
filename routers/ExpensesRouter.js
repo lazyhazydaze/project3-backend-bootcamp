@@ -13,10 +13,22 @@ class ExpensesRouter {
       "/invoice/:invoiceId",
       this.controller.getExpenses.bind(this.controller)
     );
+
+    router.delete(
+      "/invoice/:invoiceId",
+      this.controller.deleteAllExpenses.bind(this.controller)
+    );
+
     router.get(
       "/:expenseId",
       this.controller.getSpenders.bind(this.controller)
     );
+
+    router.delete(
+      "/:expenseId",
+      this.controller.deleteOne.bind(this.controller)
+    );
+
     router.get(
       "/invoice/:invoiceId/spender/:spenderId",
       this.controller.getEachUserExpenses.bind(this.controller)
@@ -33,6 +45,7 @@ class ExpensesRouter {
       "/user/:userId",
       this.controller.getUserTotalExpenses.bind(this.controller)
     );
+
     return router;
   }
 }

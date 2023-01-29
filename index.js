@@ -37,7 +37,13 @@ const friendsController = new FriendsController(
   friendlist,
   user
 );
-const invoicesController = new InvoicesController(invoice, group, user);
+const invoicesController = new InvoicesController(
+  invoice,
+  group,
+  user,
+  expense,
+  splitexpense
+);
 const expensesController = new ExpensesController(
   expense,
   user,
